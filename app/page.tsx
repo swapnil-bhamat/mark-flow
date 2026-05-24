@@ -84,9 +84,11 @@ export default function WorkspacePage() {
         {/* Sidebar Header */}
         <div className="p-4 border-b border-white/5 flex justify-between items-center bg-white/5 shrink-0 select-none">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center font-extrabold text-white shadow-lg shadow-cyan-500/20">
-              MF
-            </div>
+            <img 
+              src="/icons/icon-192.png" 
+              alt="MarkFlow Logo" 
+              className="w-8 h-8 rounded-xl shadow-lg shadow-cyan-500/20 object-cover"
+            />
             <div>
               <h1 className="text-sm font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">
                 MarkFlow
