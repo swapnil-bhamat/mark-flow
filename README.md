@@ -1,58 +1,59 @@
-# 🚀 Interactive Markdown PWA — Obsidian-Lite Workspace
+# 🚀 MarkFlow — Interactive Local-First Markdown PWA
 
-A production-grade, progressive web application (PWA) built with **Next.js 16 (App Router)**, **React 19**, **TypeScript**, and **Tailwind CSS**. It enables a local-first, offline-capable editing workspace with real-time interactive checklist rendering, Google Drive sync, and seamless import/export operations.
-
----
-
-## ⚡ Core Highlights
-
-1. **AST-Driven Interactive Checklists**: Checkboxes are interactive inside the rendered HTML preview. Clicking a checkbox parses the markdown to an Abstract Syntax Tree (AST) using Unified, toggles the state, and stringifies back to markdown in real-time, preserving markdown as the single source of truth.
-2. **Offline-First via Dexie.js**: All notes, metadata, and history are stored locally inside **IndexedDB** using Dexie.js. Features high-frequency debounced autosaving.
-3. **Google Drive REST Sync Engine**: Browser-direct cloud sync that securely connects to the user's Google Account and backups notes in a secure, hidden `appDataFolder` using Google REST APIs. Conflict resolution implements "last-write-wins" based on Unix timestamps.
-4. **Mermaid.js Flowchart Support**: Fully integrated support for fenced `mermaid` code blocks with lazy rendering, light/dark theme compliance, and grace-recovery compile error handles.
-5. **Fluid PWA Actions**: Pre-cached static shells and Stale-While-Revalidate network strategies ensure instant loads and 100% offline usage.
+MarkFlow is a production-grade, progressive web application (PWA) built with **Next.js 16 (App Router)**, **React 19**, **TypeScript**, and **Tailwind CSS**. It provides a fully offline-capable, local-first editing workspace featuring real-time interactive checklist previews, Mermaid.js diagram compilation, and a fully hardened Google Drive REST sync engine with robust deletion tombstone reconciliation.
 
 ---
 
-## 📁 Architecture Layout
+## ⚡ Core Technical Highlights
 
-- `/app/layout.tsx`: Links standard PWA manifests and manages fonts.
-- `/app/page.tsx`: Single Page Application (SPA) dashboard containing responsive grid panels and drawers.
-- `/components/`:
-  - `MarkdownEditor`: Monospace textarea with scroll-synchronized line numbers and keyboard-tab spacing helpers.
-  - `MarkdownPreview`: HTML parser leveraging unified ecosystem, rendering interactive checkboxes and custom headings.
-  - `MermaidRenderer`: Lazy-loaded, sandboxed diagram engine.
-  - `FileUploader`: Drag & drop importer utilizing `react-dropzone`.
-  - `SyncStatus`: Client-side Google Identity connection panel.
-- `/db/dexie.ts`: Local schema configuration.
-- `/lib/`:
-  - `markdown.ts`: AST-based checklist manipulation.
-  - `sync.ts`: Google Drive file-comparer engine.
-- `/store/useDocumentStore.ts`: Global state container with debounced saves.
+1. **AST-Driven Interactive Checklists:** Checklist checkboxes in the rendered HTML preview are live. Clicking one parses the raw markdown text to an **Abstract Syntax Tree (AST)**, updates the state, and compiles it back to markdown in real-time, keeping markdown as the absolute single source of truth.
+2. **Offline-First & Debounced Autosave (Dexie.js):** All documents, history, and user settings are stored locally in the browser's **IndexedDB** using Dexie.js. Local state changes update instantly in the UI, with high-frequency database operations protected by a debounced background thread.
+3. **Google Drive REST Sync & Tombstone Engine:** Directly synchronizes local notes with a secure, hidden `appDataFolder` in the user's Google Account. Includes a custom **deletion tombstone algorithm** to ensure local note deletions are propagated to the cloud rather than getting restored.
+4. **Onboarding Welcome Note Safeguard:** Tracks app onboarding lifecycle. Prevents deleted welcome notes from ghosting back when the database is empty.
+5. **Security Hardening:** Fully audited package dependencies with **zero vulnerabilities** achieved using strict package overrides.
+6. **Ultra-Clean Glassmorphic Aesthetics:** Refined, space-saving sidebar with direct social connectivity (GitHub, LinkedIn, Email), PWA app icon branding, and rich micro-animations.
 
 ---
 
-## 🛠️ Setup Instructions
+## 📁 Workspace Architecture Layout
+
+* `/app/layout.tsx`: Configures standard PWA manifests, page metadata, and font files.
+* `/app/page.tsx`: Single Page Application (SPA) dashboard housing sidebar navigators, settings, and workspaces.
+* `/components/`:
+  * `MarkdownEditor`: Monospace editor with line numbers and custom tab indentation helpers.
+  * `MarkdownPreview`: unified AST parser converting markdown to interactive components and glassmorphic tables.
+  * `MermaidRenderer`: Lazy-loaded, sandboxed diagram compiler with graceful compilation error handling.
+  * `FileUploader`: Drag & drop markdown importer leveraging `react-dropzone`.
+  * `SyncStatus`: Google API authorization widget and status reporter.
+* `/db/dexie.ts`: Dexie.js client-side database schema and preferences setup.
+* `/lib/`:
+  * `markdown.ts`: unified and rehype AST manipulation utilities.
+  * `sync.ts`: Google Drive file comparison, change propagation, and deletion tombstone sync engine.
+* `/store/useDocumentStore.ts`: Zustand global state container with autosave timeouts and document actions.
+
+---
+
+## 🛠️ Local Development & Operations
 
 ### Prerequisites
-- Node.js version 18.x or newer
-- npm package manager
+* Node.js v18.x or newer
+* npm package manager
 
 ### 1. Installation
-Clone the repository and install all dependencies:
+Clone the repository and install the dependencies:
 ```bash
 npm install
 ```
 
-### 2. Running in Development
-Fire up the local development web server:
+### 2. Development Mode
+Run the hot-reloading development server:
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to view the workspace!
+Open [http://localhost:3000](http://localhost:3000) in your web browser.
 
-### 3. Production Build Compilation
-Build the production bundle and run the server locally:
+### 3. Production Compilation
+Verify, build, and run the production-optimized build:
 ```bash
 npm run build
 npm run start
@@ -60,17 +61,16 @@ npm run start
 
 ---
 
-## ☁️ Setting up Google Drive Sync
+## ☁️ Configuring Google Drive Cloud Sync
 
-To enable the cloud synchronization engine:
-1. Go to the **[Google Cloud Console](https://console.cloud.google.com/)**.
-2. Create a new project, navigate to **APIs & Services**, and enable the **Google Drive API**.
-3. Go to **OAuth Consent Screen**:
-   - Set User Type to *External*.
-   - Add the scopes: `.../auth/drive.appdata`, `.../auth/userinfo.email`, and `.../auth/userinfo.profile`.
-   - Add your test Google accounts under "Test users".
+To set up the cloud sync integration:
+1. Navigate to the **[Google Cloud Console](https://console.cloud.google.com/)**.
+2. Create a project, enable the **Google Drive API**.
+3. Configure the **OAuth Consent Screen**:
+   * Application Type: *External*.
+   * Add scopes: `.../auth/drive.appdata`, `.../auth/userinfo.email`, and `.../auth/userinfo.profile`.
+   * Add your Google test accounts under *Test users*.
 4. Go to **Credentials** -> **Create Credentials** -> **OAuth Client ID**:
-   - Application Type: *Web Application*.
-   - Authorized JavaScript Origins: Add `http://localhost:3000` (and your production domain).
-   - Click Create and copy the generated **Client ID**.
-5. In the app sidebar, click the **Settings (gear icon)** inside the GDrive Cloud Sync card, paste your Client ID, save, and click **Connect Google Drive** to authorize!
+   * Application Type: *Web Application*.
+   * Authorized JavaScript Origins: Add `http://localhost:3000` (and your production domain).
+5. Paste the generated **Client ID** inside the app Settings card in the sidebar and click **Connect Google Drive** to authorize!
