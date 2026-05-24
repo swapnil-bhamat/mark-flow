@@ -234,6 +234,46 @@ export default function WorkspacePage() {
           </div>
         </div>
 
+        {/* Sidebar Footer - Social Links */}
+        <div className="p-4 border-t border-white/5 bg-white/2 backdrop-blur-md flex flex-col gap-2 shrink-0 select-none">
+          <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium">
+            <span>Developer</span>
+            <span className="text-cyan-500/80 font-mono">@swapnil-bhamat</span>
+          </div>
+          <div className="flex items-center gap-3 mt-1 justify-center">
+            <a
+              href="https://github.com/swapnil-bhamat/mark-flow"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center w-8 h-8 rounded-xl border border-white/10 bg-white/5 text-slate-400 hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/5 hover:shadow-[0_0_12px_rgba(6,182,212,0.15)] transition-all duration-300 active:scale-95 group"
+              title="GitHub Repository"
+            >
+              <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2A10 10 0 002 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z" />
+              </svg>
+            </a>
+            <a
+              href="https://www.linkedin.com/in/swapnil-bhamat"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center w-8 h-8 rounded-xl border border-white/10 bg-white/5 text-slate-400 hover:text-[#0a66c2] hover:border-[#0a66c2]/30 hover:bg-[#0a66c2]/5 hover:shadow-[0_0_12px_rgba(10,102,194,0.15)] transition-all duration-300 active:scale-95 group"
+              title="LinkedIn Profile"
+            >
+              <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+              </svg>
+            </a>
+            <a
+              href="mailto:swapnil.p.bhamat@gmail.com"
+              className="flex items-center justify-center w-8 h-8 rounded-xl border border-white/10 bg-white/5 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/30 hover:bg-cyan-500/5 hover:shadow-[0_0_12px_rgba(6,182,212,0.15)] transition-all duration-300 active:scale-95 group"
+              title="Email Developer"
+            >
+              <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </a>
+          </div>
+        </div>
 
       </aside>
 
