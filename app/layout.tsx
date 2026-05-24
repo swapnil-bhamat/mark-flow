@@ -13,9 +13,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Interactive Markdown Workspace — PWA",
-  description: "Production-grade offline-first progressive web application for editing, syncing, and interacting with Markdown.",
+  title: "MarkFlow — Interactive Markdown Workspace",
+  description: "Premium progressive web application for interactive markdown checklists, workflows, and secure Google Drive cloud sync.",
   manifest: "/manifest.json",
+};
+
+export const viewport = {
+  themeColor: "#07070a",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

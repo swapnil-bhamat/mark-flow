@@ -1,7 +1,7 @@
 {
-  "name": "Markdown Interactive PWA",
-  "short_name": "Markdown PWA",
-  "description": "Progressive Web Application for interactive markdown editing, syncing, and rendering.",
+  "name": "MarkFlow — Interactive Markdown Workspace",
+  "short_name": "MarkFlow",
+  "description": "Premium progressive web application for interactive markdown checklists, workflows, and secure Google Drive cloud sync.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",
@@ -11,14 +11,12 @@
     {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }

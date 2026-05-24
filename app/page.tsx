@@ -37,12 +37,18 @@ export default function WorkspacePage() {
 
     // Register vanilla service worker for full offline functionality
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
+      const registerSW = () => {
         navigator.serviceWorker
           .register('/sw.js')
           .then((reg) => console.log('[PWA] Service Worker registered successfully:', reg.scope))
           .catch((err) => console.error('[PWA] Service Worker registration failed:', err));
-      });
+      };
+
+      if (document.readyState === 'complete') {
+        registerSW();
+      } else {
+        window.addEventListener('load', registerSW);
+      }
     }
   }, [loadDocuments]);
 
@@ -78,12 +84,12 @@ export default function WorkspacePage() {
         {/* Sidebar Header */}
         <div className="p-4 border-b border-white/5 flex justify-between items-center bg-white/5 shrink-0 select-none">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-500/20">
-              M
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center font-extrabold text-white shadow-lg shadow-cyan-500/20">
+              MF
             </div>
             <div>
-              <h1 className="text-sm font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">
-                Markdown PWA
+              <h1 className="text-sm font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">
+                MarkFlow
               </h1>
               <span className="text-[10px] text-cyan-400/80 font-mono">obsidian-lite v1.0</span>
             </div>
