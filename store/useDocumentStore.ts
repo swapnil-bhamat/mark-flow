@@ -120,13 +120,17 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     try {
       let docs = await db.documents.toArray();
       
-      // Auto-create onboarding document if DB is empty
+      // Auto-create onboarding document if DB is empty and has never been created
       if (docs.length === 0) {
-        const welcomeId = await get().createNewDocument(
-          'Welcome Note 🚀',
-          WELCOME_CONTENT
-        );
-        docs = await db.documents.toArray();
+        const welcomeCreated = await db.preferences.get('welcome_note_created');
+        if (!welcomeCreated || !welcomeCreated.value) {
+          await get().createNewDocument(
+            'Welcome Note 🚀',
+            WELCOME_CONTENT
+          );
+          await db.preferences.put({ key: 'welcome_note_created', value: true });
+          docs = await db.documents.toArray();
+        }
       }
 
       // Sort by updatedAt descending
@@ -289,6 +293,16 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
 
   deleteDocument: async (id: string) => {
     try {
+      const doc = await db.documents.get(id);
+      if (doc) {
+        // Record deletion tombstone in preferences for cloud synchronisation
+        const tombstones = await db.preferences.get('deleted_document_tombstones').then(pref => pref ? pref.value : []);
+        if (!tombstones.some((t: any) => t.id === id)) {
+          tombstones.push({ id, gdriveId: doc.gdriveId, deletedAt: Date.now() });
+          await db.preferences.put({ key: 'deleted_document_tombstones', value: tombstones });
+        }
+      }
+
       await db.documents.delete(id);
       // Clean up revisions
       await db.revisions.where('docId').equals(id).delete();

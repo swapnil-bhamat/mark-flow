@@ -169,6 +169,13 @@ export class GDriveSyncEngine {
     onProgress('Loading offline database...');
     const localDocs = await db.documents.toArray();
 
+    // Load deletion tombstones from preferences to identify locally deleted documents
+    const tombstones = await db.preferences.get('deleted_document_tombstones').then(pref => pref ? pref.value : []);
+    const tombstoneMap = new Map<string, any>();
+    for (const t of tombstones) {
+      tombstoneMap.set(t.id, t);
+    }
+
     const remoteMap = new Map<string, GDriveFileMetadata>();
     for (const f of remoteFiles) {
       if (f.appProperties?.id) {
@@ -242,35 +249,54 @@ export class GDriveSyncEngine {
       }
     }
 
-    // Process remote files that don't exist locally (Download)
+    // Process remote files that don't exist locally (Download or Delete from Drive if deleted locally)
+    const tombstonesToRemove: string[] = [];
     for (const [id, remoteFile] of remoteMap.entries()) {
       if (!localMap.has(id)) {
-        const title = decodeURIComponent(remoteFile.appProperties?.title || remoteFile.name.replace('.md', ''));
-        onProgress(`Downloading new document: ${title}...`);
-        
-        try {
-          const content = await this.downloadFileContent(remoteFile.id);
-          const remoteUpdatedAt = Number(remoteFile.appProperties?.updatedAt || Date.now());
+        const tombstone = tombstoneMap.get(id);
+        if (tombstone) {
+          const title = decodeURIComponent(remoteFile.appProperties?.title || remoteFile.name.replace('.md', ''));
+          onProgress(`Deleting remote file from Drive: ${title}...`);
+          try {
+            await this.deleteFile(remoteFile.id);
+            tombstonesToRemove.push(id);
+          } catch (err) {
+            console.error(`Failed deleting ${title} from Drive`, err);
+          }
+        } else {
+          const title = decodeURIComponent(remoteFile.appProperties?.title || remoteFile.name.replace('.md', ''));
+          onProgress(`Downloading new document: ${title}...`);
           
-          const newDoc: Document = {
-            id: id,
-            title,
-            content,
-            createdAt: remoteUpdatedAt,
-            updatedAt: remoteUpdatedAt,
-            revisionId: remoteFile.appProperties?.revisionId || 'rev_initial',
-            deviceId: remoteFile.appProperties?.deviceId || 'remote',
-            isSynced: 1,
-            gdriveId: remoteFile.id,
-            gdriveVersion: String(remoteFile.modifiedTime || '1'),
-          };
+          try {
+            const content = await this.downloadFileContent(remoteFile.id);
+            const remoteUpdatedAt = Number(remoteFile.appProperties?.updatedAt || Date.now());
+            
+            const newDoc: Document = {
+              id: id,
+              title,
+              content,
+              createdAt: remoteUpdatedAt,
+              updatedAt: remoteUpdatedAt,
+              revisionId: remoteFile.appProperties?.revisionId || 'rev_initial',
+              deviceId: remoteFile.appProperties?.deviceId || 'remote',
+              isSynced: 1,
+              gdriveId: remoteFile.id,
+              gdriveVersion: String(remoteFile.modifiedTime || '1'),
+            };
 
-          await db.documents.add(newDoc);
-        } catch (err) {
-          console.error(`Failed importing ${remoteFile.name} from Drive`, err);
+            await db.documents.add(newDoc);
+          } catch (err) {
+            console.error(`Failed importing ${remoteFile.name} from Drive`, err);
+          }
         }
       }
     }
+
+    // Clean up local tombstones that are no longer present on Google Drive
+    const finalTombstones = tombstones.filter((t: any) => {
+      return remoteMap.has(t.id) && !tombstonesToRemove.includes(t.id);
+    });
+    await db.preferences.put({ key: 'deleted_document_tombstones', value: finalTombstones });
 
     onProgress('Sync completed successfully!');
   }
