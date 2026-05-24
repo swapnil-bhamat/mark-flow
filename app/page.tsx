@@ -47,17 +47,23 @@ export default function WorkspacePage() {
             console.log('[PWA] Service Worker registered successfully:', reg.scope);
             
             // 1. Check for service worker updates immediately on mount
-            reg.update().catch((e) => console.log('[PWA] Immediate update check failed:', e));
+            if (navigator.onLine) {
+              reg.update().catch((e) => console.log('[PWA] Immediate update check failed:', e));
+            }
 
             // 2. Set up check on window focus (app returning from background)
             const handleFocus = () => {
-              reg.update().catch((e) => console.log('[PWA] Focus update check failed:', e));
+              if (navigator.onLine) {
+                reg.update().catch((e) => console.log('[PWA] Focus update check failed:', e));
+              }
             };
             window.addEventListener('focus', handleFocus);
 
             // 3. Set up periodic check (every 5 minutes)
             intervalId = setInterval(() => {
-              reg.update().catch((e) => console.log('[PWA] Periodic update check failed:', e));
+              if (navigator.onLine && document.visibilityState === 'visible') {
+                reg.update().catch((e) => console.log('[PWA] Periodic update check failed:', e));
+              }
             }, 5 * 60 * 1000);
 
             // 4. Listen for update found (new service worker is installing)
