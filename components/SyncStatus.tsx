@@ -29,6 +29,47 @@ export const SyncStatus: React.FC<SyncStatusProps> = ({ onClose }) => {
   const [showConfig, setShowConfig] = useState(false);
   const [token, setToken] = useState<string | null>(null);
 
+  const handleCheckForUpdates = async () => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          await reg.update();
+          alert('Check complete! If an update is available, it will download and prompt you shortly.');
+        } else {
+          alert('No service worker registered. Try Force Reload to clear cached assets.');
+        }
+      } catch (err: any) {
+        console.error('Update check failed:', err);
+        alert(`Failed to check for updates: ${err.message}`);
+      }
+    } else {
+      alert('PWA Service Worker is not supported on this device/browser.');
+    }
+  };
+
+  const handleForceReload = async () => {
+    if (confirm('This will purge cached app files and hard-refresh the page. Your notes/documents are stored in a local database and will remain completely safe. Continue?')) {
+      try {
+        if (typeof window !== 'undefined' && 'caches' in window) {
+          const cacheKeys = await caches.keys();
+          await Promise.all(cacheKeys.map((key) => caches.delete(key)));
+        }
+
+        if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map((reg) => reg.unregister()));
+        }
+
+        window.location.href = window.location.origin + '?reload=' + Date.now();
+      } catch (err: any) {
+        console.error('Force reload failed:', err);
+        alert(`Failed to clear cache: ${err.message}. Page will reload now.`);
+        window.location.reload();
+      }
+    }
+  };
+
   // Load client ID from localStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -292,6 +333,29 @@ export const SyncStatus: React.FC<SyncStatusProps> = ({ onClose }) => {
           {syncStatusMessage}
         </div>
       )}
+
+      {/* App Diagnostics & Updates */}
+      <div className="pt-4 border-t border-white/5 flex flex-col gap-2.5">
+        <div className="flex justify-between items-center text-xs text-slate-400 select-none">
+          <span>App Version: <span className="text-slate-300 font-semibold font-mono">v1.1.0</span></span>
+          <button
+            onClick={handleCheckForUpdates}
+            className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold cursor-pointer hover:underline bg-transparent border-none p-0"
+          >
+            Check for updates
+          </button>
+        </div>
+        <button
+          onClick={handleForceReload}
+          className="w-full flex items-center justify-center gap-2 py-2 px-3 border border-dashed border-white/10 hover:border-cyan-500/30 bg-white/5 hover:bg-cyan-500/5 text-xs text-slate-300 hover:text-cyan-400 rounded-xl cursor-pointer transition-all duration-300 active:scale-95 group"
+          title="Purge cached assets and perform a hard refresh"
+        >
+          <svg className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500 text-slate-400 group-hover:text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.23" />
+          </svg>
+          Force Reload (Clear Cache)
+        </button>
+      </div>
     </div>
   );
 };

@@ -30,6 +30,7 @@ export default function WorkspacePage() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showUploader, setShowUploader] = useState(false);
   const [showSyncModal, setShowSyncModal] = useState(false);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
 
   // Initialize DB and register PWA Service Worker on mount
   useEffect(() => {
@@ -37,18 +38,64 @@ export default function WorkspacePage() {
 
     // Register vanilla service worker for full offline functionality
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      let intervalId: NodeJS.Timeout;
+      
       const registerSW = () => {
         navigator.serviceWorker
           .register('/sw.js')
-          .then((reg) => console.log('[PWA] Service Worker registered successfully:', reg.scope))
+          .then((reg) => {
+            console.log('[PWA] Service Worker registered successfully:', reg.scope);
+            
+            // 1. Check for service worker updates immediately on mount
+            reg.update().catch((e) => console.log('[PWA] Immediate update check failed:', e));
+
+            // 2. Set up check on window focus (app returning from background)
+            const handleFocus = () => {
+              reg.update().catch((e) => console.log('[PWA] Focus update check failed:', e));
+            };
+            window.addEventListener('focus', handleFocus);
+
+            // 3. Set up periodic check (every 5 minutes)
+            intervalId = setInterval(() => {
+              reg.update().catch((e) => console.log('[PWA] Periodic update check failed:', e));
+            }, 5 * 60 * 1000);
+
+            // 4. Listen for update found (new service worker is installing)
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    setUpdateAvailable(true);
+                  }
+                });
+              }
+            });
+
+            return () => {
+              window.removeEventListener('focus', handleFocus);
+              if (intervalId) clearInterval(intervalId);
+            };
+          })
           .catch((err) => console.error('[PWA] Service Worker registration failed:', err));
       };
+
+      // Listen for when a new service worker actually takes control (after skipWaiting + clients.claim)
+      const handleControllerChange = () => {
+        setUpdateAvailable(true);
+      };
+      navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
 
       if (document.readyState === 'complete') {
         registerSW();
       } else {
         window.addEventListener('load', registerSW);
       }
+
+      return () => {
+        navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+        if (intervalId) clearInterval(intervalId);
+      };
     }
   }, [loadDocuments]);
 
@@ -427,6 +474,41 @@ export default function WorkspacePage() {
           <div className="absolute inset-0 cursor-pointer" onClick={() => setShowSyncModal(false)} />
           <div className="relative w-full max-w-md mx-auto shadow-2xl">
             <SyncStatus onClose={() => setShowSyncModal(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* PWA UPDATE TOAST */}
+      {updateAvailable && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-md animate-slideUp">
+          <div className="bg-[#0b0b14]/90 backdrop-blur-xl border border-cyan-500/35 rounded-2xl p-4 shadow-[0_0_30px_rgba(6,182,212,0.25)] flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-cyan-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.23" />
+                </svg>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-100">Update Available</span>
+                <span className="text-[10px] text-slate-400">A new version of MarkFlow is ready.</span>
+              </div>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={() => {
+                  window.location.reload();
+                }}
+                className="bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold py-1.5 px-3 rounded-xl text-[10px] shadow-md shadow-cyan-500/10 cursor-pointer transition-all duration-300 active:scale-95 whitespace-nowrap"
+              >
+                Update Now
+              </button>
+              <button
+                onClick={() => setUpdateAvailable(false)}
+                className="text-slate-500 hover:text-slate-300 text-[10px] px-2 font-medium cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
         </div>
       )}
